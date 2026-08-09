@@ -1,0 +1,12 @@
+[package]
+name = "embedded-alerts/eal-e2e"
+version = "0.1.0"
+
+[install]
+dir = ".vendor/.zed"
+
+[dependencies]
+"embedded-alerts/eal-clients" = "^0.1.0"
+"embedded-alerts/eal-interfaces" = "^0.1.0"
+"embedded-alerts/eal-libs" = "^0.1.0"
+"embedded-alerts/eal-cli" = "^0.1.0"

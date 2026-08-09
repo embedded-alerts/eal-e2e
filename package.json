@@ -1,0 +1,23 @@
+{
+  "name": "@embedded-alerts/eal-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "validate": "node scripts/validate-structure.mjs",
+    "test:contracts": "node --test tests/contracts/*.test.mjs",
+    "test:offline": "npm run validate && npm run test:contracts",
+    "test:playwright": "playwright test",
+    "test:puppeteer": "node --test tests/browser/puppeteer/*.test.mjs",
+    "test:selenium": "node --test tests/browser/selenium/*.test.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "puppeteer": "25.5.0",
+    "selenium-webdriver": "4.46.0"
+  }
+}

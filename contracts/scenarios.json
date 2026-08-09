@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "suite": "eal-e2e",
+  "default_mode": "offline-fixture",
+  "scenarios": [
+    {
+      "id": "api",
+      "required": true,
+      "live_credentials_required": false
+    },
+    {
+      "id": "websocket",
+      "required": true,
+      "live_credentials_required": false
+    },
+    {
+      "id": "provider-adapter",
+      "required": true,
+      "live_credentials_required": false
+    },
+    {
+      "id": "offline-queue",
+      "required": true,
+      "live_credentials_required": false
+    },
+    {
+      "id": "accessibility",
+      "required": true,
+      "live_credentials_required": false
+    },
+    {
+      "id": "embedded-host",
+      "required": true,
+      "live_credentials_required": false
+    }
+  ]
+}
