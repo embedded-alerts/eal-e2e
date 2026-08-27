@@ -26,7 +26,18 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npm run test:offline
+      - name: Validate Zed package identity
+        run: npm run validate
+      - name: Offline contract assertions
+        run: npm run test:contracts
+      - name: Refuse fabricated Zed lockfiles
+        run: |
+          set -euo pipefail
+          if [ -f .zpkg.lock ]; then
+            echo "do not commit a fabricated .zpkg.lock; generate it only from a successful resolver run"
+            exit 1
+          fi
+          test ! -d .vendor/.zed
 
   browser-matrix:
     runs-on: ubuntu-latest
