@@ -3,6 +3,8 @@ playwright-report/
 test-results/
 .selenium-manager/
 .vendor/
+.vendor/.zed/
 .env
 .env.*
 !.env.example
+.zpkg.lock

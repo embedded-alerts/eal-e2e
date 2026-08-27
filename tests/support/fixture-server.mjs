@@ -13,7 +13,11 @@ export async function startFixtureServer(port = 0) {
     }
     if (request.url === "/contracts") {
       response.writeHead(200, { "content-type": "application/json" });
-      response.end(JSON.stringify({ suite, mode: "offline-fixture" }));
+      response.end(JSON.stringify({
+        suite,
+        mode: "offline-fixture",
+        scenarios: ["api", "websocket", "provider-adapter", "offline-queue", "accessibility", "embedded-host"],
+      }));
       return;
     }
     response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
