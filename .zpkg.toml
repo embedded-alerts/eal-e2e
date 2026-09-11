@@ -1,12 +1,33 @@
 [package]
-name = "embedded-alerts/eal-e2e"
+org = "embedded-alerts"
+name = "eal-e2e"
 version = "0.1.0"
+description = "Canonical product-level end-to-end contract harness for Embedded Alerts"
+license = "MIT"
+keywords = ["e2e", "playwright", "puppeteer", "selenium", "contracts"]
+language = "javascript"
 
-[install]
-dir = ".vendor/.zed"
+[package.repository]
+vcs = "git"
+url = "https://github.com/embedded-alerts/eal-e2e"
 
 [dependencies]
 "embedded-alerts/eal-clients" = "^0.1.0"
 "embedded-alerts/eal-interfaces" = "^0.1.0"
 "embedded-alerts/eal-libs" = "^0.1.0"
 "embedded-alerts/eal-cli" = "^0.1.0"
+
+[install]
+adapter = "node"
+dir = ".vendor/.zed"
+
+[publish]
+include_readme = true
+tag_format = "v{version}"
+exclude = [".env", ".env.*", "node_modules/**", "playwright-report/**", "test-results/**", ".selenium-manager/**", ".vendor/.zed/**", "**/*.log", ".DS_Store"]
+
+[scripts]
+test = "npm run test:offline"
+test-playwright = "npm run test:playwright"
+test-puppeteer = "npm run test:puppeteer"
+test-selenium = "npm run test:selenium"
