@@ -1,0 +1,17 @@
+// Source-level policy, not execution evidence for mobile or server clients.
+define module alerts_policy as
+  pub fnc may_deliver(bool queued, bool already_delivered,
+                      bool revoked): bool {
+    return queued && !already_delivered && !revoked;
+  }
+  pub fnc may_ack(bool already_delivered): bool {
+    return already_delivered;
+  }
+  pub fnc self_check(): bool {
+    return may_deliver(true,false,false) &&
+      !may_deliver(false,false,false) &&
+      !may_deliver(true,true,false) &&
+      !may_deliver(true,false,true) &&
+      may_ack(true) && !may_ack(false);
+  }
+end
