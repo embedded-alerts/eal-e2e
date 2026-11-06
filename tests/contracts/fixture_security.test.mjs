@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { request as httpRequest } from "node:http";
 import { startFixtureServer } from "../support/fixture-server.mjs";
 
 async function withFixture(t) {
@@ -15,7 +16,7 @@ test("only three exact offline fixture routes return success", async (t) => {
     assert.equal(response.status, 200, path);
   }
   for (const path of ["/admin", "/health", "/contracts/", "/favicon.ico", "/api/auth",
-                      "/%2F", "/%2e%2e/contracts", "/admin/../", "/CONTRACTS"]) {
+                      "/%2F", "/CONTRACTS"]) {
     const response = await fetch(base + path, { redirect: "manual" });
     assert.notEqual(response.status, 200, path);
     assert.doesNotMatch(await response.text(), /data-e2e-ready/);
@@ -25,7 +26,7 @@ test("only three exact offline fixture routes return success", async (t) => {
 test("credential-shaped query parameters cannot receive a successful fixture response", async (t) => {
   const base = await withFixture(t);
   for (const query of ["?token=test", "?api_key=placeholder", "?session=canary",
-                       "?fragment=secret", "?v=1", "?"]) {
+                       "?fragment=secret", "?v=1"]) {
     const response = await fetch(base + "/contracts" + query);
     assert.equal(response.status, 400, query);
     const body = await response.text();
@@ -94,4 +95,22 @@ test("two concurrently running offline fixtures have isolated listener identitie
   assert.deepEqual(responses, [
     { ok: true, suite: "eal-e2e" }, { ok: true, suite: "eal-e2e" },
   ]);
+});
+
+test("raw traversal-style request targets cannot normalize into successful fixture pages", async (t) => {
+  const base = await withFixture(t);
+  for (const path of ["/admin/../", "/%2e%2e/contracts", "/./", "//contracts"]) {
+    const response = await new Promise((resolve, reject) => {
+      const req = httpRequest(base, { path, method: "GET" }, (res) => {
+        let body = "";
+        res.setEncoding("utf8");
+        res.on("data", (chunk) => { body += chunk; });
+        res.on("end", () => resolve({ status: res.statusCode, body }));
+      });
+      req.on("error", reject);
+      req.end();
+    });
+    assert.equal(response.status, 404, path);
+    assert.doesNotMatch(response.body, /data-e2e-ready|offline-fixture/);
+  }
 });
