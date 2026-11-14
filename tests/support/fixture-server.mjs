@@ -36,6 +36,12 @@ export async function startFixtureServer(port = 0) {
       send(response, request.method, 400, "text/plain; charset=utf-8", "Bad Request");
       return;
     }
+    // Offline-only rate-limit canary. This fixture never dispatches real alerts.
+    if (request.url === "/rate-limit") {
+      response.setHeader("retry-after", "90");
+      send(response, request.method, 429, "application/json", '{"error":"rate_limited"}');
+      return;
+    }
     const route = routes.get(request.url);
     if (!route) {
       send(response, request.method, 404, "text/plain; charset=utf-8", "Not Found");
