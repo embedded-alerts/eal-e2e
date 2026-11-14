@@ -13,7 +13,12 @@ const routes = new Map([
 ]);
 
 function send(response, method, code, type, body) {
-  response.writeHead(code, { "content-type": type });
+  // HEAD must report the same representation length as GET while returning
+  // zero body bytes. Explicit byte lengths also avoid ambiguous HTTP framing.
+  response.writeHead(code, {
+    "content-type": type,
+    "content-length": Buffer.byteLength(body),
+  });
   response.end(method === "HEAD" ? undefined : body);
 }
 
