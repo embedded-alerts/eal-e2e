@@ -47,12 +47,16 @@ test("write methods do not mutate or impersonate any read-only fixture route", a
                    { ok: true, suite: "eal-e2e" });
 });
 
-test("HEAD returns metadata without response bytes", async (t) => {
+test("HEAD returns GET representation metadata without response bytes", async (t) => {
   const base = await withFixture(t);
-  for (const path of ["/", "/healthz", "/contracts"]) {
-    const response = await fetch(base + path, { method: "HEAD" });
-    assert.equal(response.status, 200, path);
-    assert.equal(await response.text(), "");
+  for (const path of ["/", "/healthz", "/contracts", "/rate-limit", "/missing"]) {
+    const get = await fetch(base + path, { method: "GET" });
+    const body = await get.text();
+    const head = await fetch(base + path, { method: "HEAD" });
+    assert.equal(head.status, get.status, path);
+    assert.equal(head.headers.get("content-length"), String(Buffer.byteLength(body)), path);
+    assert.equal(get.headers.get("content-length"), String(Buffer.byteLength(body)), path);
+    assert.equal(await head.text(), "", path);
   }
 });
 
@@ -113,4 +117,21 @@ test("raw traversal-style request targets cannot normalize into successful fixtu
     assert.equal(response.status, 404, path);
     assert.doesNotMatch(response.body, /data-e2e-ready|offline-fixture/);
   }
+});
+
+
+test("offline rate-limit canary is bounded and non-replaying", async (t) => {
+  const base = await withFixture(t);
+  for (const method of ["GET", "HEAD"]) {
+    const response = await fetch(base + "/rate-limit", { method });
+    assert.equal(response.status, 429);
+    assert.equal(response.headers.get("retry-after"), "90");
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    assert.equal(await response.text(), method === "HEAD" ? "" : '{"error":"rate_limited"}');
+  }
+  const blocked = await fetch(base + "/rate-limit", { method: "POST", body: "probe" });
+  assert.equal(blocked.status, 405);
+  const queried = await fetch(base + "/rate-limit?token=canary");
+  assert.equal(queried.status, 400);
+  assert.equal(await queried.text(), "Bad Request");
 });

@@ -13,7 +13,12 @@ const routes = new Map([
 ]);
 
 function send(response, method, code, type, body) {
-  response.writeHead(code, { "content-type": type });
+  // HEAD must report the same representation length as GET while returning
+  // zero body bytes. Explicit byte lengths also avoid ambiguous HTTP framing.
+  response.writeHead(code, {
+    "content-type": type,
+    "content-length": Buffer.byteLength(body),
+  });
   response.end(method === "HEAD" ? undefined : body);
 }
 
@@ -34,6 +39,12 @@ export async function startFixtureServer(port = 0) {
     if (typeof request.url !== "string" || request.url.includes("?") ||
         request.url.includes("#")) {
       send(response, request.method, 400, "text/plain; charset=utf-8", "Bad Request");
+      return;
+    }
+    // Offline-only rate-limit canary. This fixture never dispatches real alerts.
+    if (request.url === "/rate-limit") {
+      response.setHeader("retry-after", "90");
+      send(response, request.method, 429, "application/json", '{"error":"rate_limited"}');
       return;
     }
     const route = routes.get(request.url);
