@@ -114,3 +114,20 @@ test("raw traversal-style request targets cannot normalize into successful fixtu
     assert.doesNotMatch(response.body, /data-e2e-ready|offline-fixture/);
   }
 });
+
+
+test("offline rate-limit canary is bounded and non-replaying", async (t) => {
+  const base = await withFixture(t);
+  for (const method of ["GET", "HEAD"]) {
+    const response = await fetch(base + "/rate-limit", { method });
+    assert.equal(response.status, 429);
+    assert.equal(response.headers.get("retry-after"), "90");
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    assert.equal(await response.text(), method === "HEAD" ? "" : '{"error":"rate_limited"}');
+  }
+  const blocked = await fetch(base + "/rate-limit", { method: "POST", body: "probe" });
+  assert.equal(blocked.status, 405);
+  const queried = await fetch(base + "/rate-limit?token=canary");
+  assert.equal(queried.status, 400);
+  assert.equal(await queried.text(), "Bad Request");
+});
